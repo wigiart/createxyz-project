@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Draggable from 'react-draggable';
 import html2canvas from 'html2canvas';
 import { useUpload } from "../utilities/runtime-helpers";
+import Layout from '../components/Layout';
 
 function MainComponent() {
   const { useState, useEffect, useRef } = React;
@@ -19,12 +20,22 @@ function MainComponent() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [error, setError] = useState(null);
   const [upload, { loading }] = useUpload();
   const frameRef = useRef(null);
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const handleTabSwitch = (event) => {
+      setActiveTab(event.detail);
+    };
+    
+    window.addEventListener('switchTab', handleTabSwitch);
+    return () => window.removeEventListener('switchTab', handleTabSwitch);
+  }, []);
 
   useEffect(() => {
     const frameId = searchParams.get('frame');
@@ -229,11 +240,18 @@ function MainComponent() {
   ];
 
   const videoTemplates = [
-    { id: 1, name: "Slideshow", src: "src\app\Videos\template1.mp4", type: "video" },
+    { 
+      id: 1, 
+      name: "Slideshow", 
+      src: "/Videos/template1.mp4", 
+      thumbnail: "/Videos/template1-thumb.jpg",
+      type: "video" 
+    },
     {
       id: 2,
       name: "Celebration",
-      src: "src\app\Videos\template2.mp4",
+      src: "/Videos/template2.mp4",
+      thumbnail: "/Videos/template2-thumb.jpg",
       type: "video",
     },
   ];
@@ -244,7 +262,7 @@ function MainComponent() {
   const visibleFrames = showAllFrames ? frames : initialFrames;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-purple-100">
+    <Layout>
       <div className="max-w-4xl mx-auto p-4">
         <header className="text-center py-6">
           <h1 className="text-3xl md:text-4xl font-bold text-purple-600 font-dancing mb-2">
@@ -256,31 +274,6 @@ function MainComponent() {
         </header>
 
         <div className="bg-white rounded-xl shadow-lg p-4 mb-6 overflow-hidden">
-          <div className="flex gap-4 mb-6">
-            <button
-              onClick={() => setActiveTab("frames")}
-              className={`flex-1 py-3 px-6 rounded-lg font-roboto ${
-                activeTab === "frames"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <i className="fas fa-image mr-2"></i>
-              Frames
-            </button>
-            <button
-              onClick={() => setActiveTab("video")}
-              className={`flex-1 py-3 px-6 rounded-lg font-roboto ${
-                activeTab === "video"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              <i className="fas fa-video mr-2"></i>
-              Video
-            </button>
-          </div>
-
           <div className="space-y-4">
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-4 font-roboto">
@@ -322,34 +315,87 @@ function MainComponent() {
                     </button>
                   )}
 
-                  {activeTab === "video" &&
-                    videoTemplates.map((template) => (
-                      <div
-                        key={template.id}
-                        onClick={() => setUploadedImage(template.src)}
-                        className="flex-shrink-0 w-[calc(25%-12px)] min-w-[200px] snap-start aspect-square rounded-lg overflow-hidden border-2 border-purple-200 hover:border-purple-600 cursor-pointer"
-                      >
-                        <div className="relative w-full h-full">
-                          <video
-                            src={template.src}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            muted
-                            loop
-                            onMouseOver={(e) => e.target.play()}
-                            onMouseOut={(e) => e.target.pause()}
-                          />
-                          <p className="absolute bottom-0 left-0 right-0 text-center py-2 bg-white font-roboto text-sm">
-                            {template.name}
-                          </p>
+                  {activeTab === "videos" && (
+                    <div className="flex flex-col h-full">
+                      {selectedVideo ? (
+                        <div className="flex-1 flex items-center justify-center p-4">
+                          <div className="w-full max-w-4xl">
+                            <button
+                              onClick={() => setSelectedVideo(null)}
+                              className="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                              </svg>
+                              Choose Different Template
+                            </button>
+                            <video
+                              key={selectedVideo.src}
+                              src={selectedVideo.src}
+                              className="w-full rounded-lg shadow-lg"
+                              controls
+                              preload="auto"
+                              playsInline
+                              onError={(e) => {
+                                console.error('Video error:', e);
+                                setError('Error loading video. Please try again.');
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4 p-4">
+                          {videoTemplates.map((template) => (
+                            <div
+                              key={template.id}
+                              className="relative group cursor-pointer bg-gray-100 rounded-lg overflow-hidden"
+                              onClick={() => setSelectedVideo(template)}
+                            >
+                              <div className="aspect-video relative">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-gray-500 text-sm">Loading preview...</span>
+                                </div>
+                                <video
+                                  key={template.src}
+                                  src={template.src}
+                                  className="w-full h-full object-cover"
+                                  preload="metadata"
+                                  playsInline
+                                  muted
+                                  onLoadedMetadata={(e) => {
+                                    e.target.currentTime = 0;
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.target.play().catch(() => {});
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.target.pause();
+                                    e.target.currentTime = 0;
+                                  }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group-hover:bg-opacity-50 transition-all duration-200">
+                                  <span className="text-white text-lg font-medium">
+                                    {template.name}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {error && (
+                        <div className="text-red-500 text-center mt-2">
+                          {error}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div 
                 ref={canvasRef}
-                className="relative w-full overflow-hidden rounded-lg border bg-gray-50" 
+                className={`relative w-full overflow-hidden rounded-lg border bg-gray-50 ${activeTab === "videos" ? "hidden" : ""}`}
                 style={frameSize.width && frameSize.height 
                   ? { paddingBottom: `${(frameSize.height / frameSize.width) * 100}%` }
                   : { paddingBottom: '100%' }}
@@ -391,7 +437,7 @@ function MainComponent() {
                         <div className="absolute bottom-4 left-4 flex gap-3 z-30">
                           <button
                             onClick={() => handleScale('up')}
-                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-colors
                               border border-black/20 hover:border-black/40 hover:scale-110"
                             title="Zoom In"
                           >
@@ -401,7 +447,7 @@ function MainComponent() {
                           </button>
                           <button
                             onClick={() => handleScale('down')}
-                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-colors
                               border border-black/20 hover:border-black/40 hover:scale-110"
                             title="Zoom Out"
                           >
@@ -411,7 +457,7 @@ function MainComponent() {
                           </button>
                           <button
                             onClick={resetImage}
-                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-colors
                               border border-black/20 hover:border-black/40 hover:scale-110"
                             title="Reset Image"
                           >
@@ -496,7 +542,7 @@ function MainComponent() {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
