@@ -11,13 +11,14 @@ function MainComponent() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("frames");
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [selectedFrame, setSelectedFrame] = useState(null);
+  const [selectedFrame, setSelectedFrame] = useState("https://i.imgur.com/IhwDheg.png"); 
   const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [imageScale, setImageScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [error, setError] = useState(null);
   const [upload, { loading }] = useUpload();
   const frameRef = useRef(null);
@@ -26,7 +27,6 @@ function MainComponent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Handle frame selection from URL
     const frameId = searchParams.get('frame');
     if (frameId) {
       const frame = frames.find(f => f.id === parseInt(frameId));
@@ -38,7 +38,6 @@ function MainComponent() {
   }, [searchParams]);
 
   useEffect(() => {
-    // Load saved image from localStorage
     const savedImage = localStorage.getItem('uploadedImage');
     if (savedImage) {
       setUploadedImage(savedImage);
@@ -46,7 +45,6 @@ function MainComponent() {
   }, []);
 
   useEffect(() => {
-    // Update frame size when frame changes
     if (selectedFrame && frameRef.current) {
       const img = new Image();
       img.onload = () => {
@@ -60,7 +58,17 @@ function MainComponent() {
   }, [selectedFrame]);
 
   useEffect(() => {
-    // Update image size when uploaded
+    const img = new Image();
+    img.onload = () => {
+      setFrameSize({
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+    };
+    img.src = selectedFrame;
+  }, []);
+
+  useEffect(() => {
     if (uploadedImage) {
       const img = new Image();
       img.onload = () => {
@@ -68,7 +76,6 @@ function MainComponent() {
         let newWidth, newHeight;
         
         if (frameSize.width && frameSize.height) {
-          // Fit image within frame while maintaining aspect ratio
           if (aspectRatio > frameSize.width / frameSize.height) {
             newWidth = frameSize.width;
             newHeight = frameSize.width / aspectRatio;
@@ -77,7 +84,6 @@ function MainComponent() {
             newWidth = frameSize.height * aspectRatio;
           }
         } else {
-          // Default size if no frame selected
           newWidth = img.naturalWidth;
           newHeight = img.naturalHeight;
         }
@@ -87,7 +93,6 @@ function MainComponent() {
           height: newHeight
         });
         
-        // Center the image
         setImagePosition({
           x: (frameSize.width - newWidth) / 2,
           y: (frameSize.height - newHeight) / 2
@@ -129,7 +134,6 @@ function MainComponent() {
     const scaleFactor = direction === 'up' ? 1.1 : 0.9;
     const newScale = imageScale * scaleFactor;
     
-    // Limit scale range
     if (newScale >= 0.1 && newScale <= 3) {
       setImageScale(newScale);
     }
@@ -137,7 +141,6 @@ function MainComponent() {
 
   const resetImage = () => {
     setImageScale(1);
-    // Center the image
     setImagePosition({
       x: (frameSize.width - imageSize.width) / 2,
       y: (frameSize.height - imageSize.height) / 2
@@ -153,6 +156,8 @@ function MainComponent() {
     if (!canvasRef.current || !uploadedImage) return;
     
     setIsSaving(true);
+    setShowControls(false); // Hide controls before capture
+    
     try {
       // Wait for any transitions to complete
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -174,6 +179,7 @@ function MainComponent() {
       setError('Failed to save creation. Please try again.');
     } finally {
       setIsSaving(false);
+      setShowControls(true); // Show controls after capture
     }
   };
 
@@ -223,11 +229,11 @@ function MainComponent() {
   ];
 
   const videoTemplates = [
-    { id: 1, name: "Slideshow", src: "/videos/slideshow.mp4", type: "video" },
+    { id: 1, name: "Slideshow", src: "src\app\Videos\template1.mp4", type: "video" },
     {
       id: 2,
       name: "Celebration",
-      src: "/videos/celebration.mp4",
+      src: "src\app\Videos\template2.mp4",
       type: "video",
     },
   ];
@@ -381,35 +387,40 @@ function MainComponent() {
                           />
                         </div>
                       </Draggable>
-                      <div className="absolute bottom-4 left-4 flex gap-2 z-30">
-                        <button
-                          onClick={() => handleScale('up')}
-                          className="bg-white p-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
-                          title="Zoom In"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleScale('down')}
-                          className="bg-white p-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
-                          title="Zoom Out"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={resetImage}
-                          className="bg-white p-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"
-                          title="Reset Image"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </button>
-                      </div>
+                      {showControls && (
+                        <div className="absolute bottom-4 left-4 flex gap-3 z-30">
+                          <button
+                            onClick={() => handleScale('up')}
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                              border border-black/20 hover:border-black/40 hover:scale-110"
+                            title="Zoom In"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleScale('down')}
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                              border border-black/20 hover:border-black/40 hover:scale-110"
+                            title="Zoom Out"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={resetImage}
+                            className="bg-white p-2.5 rounded-lg shadow-lg hover:bg-gray-50 transition-all
+                              border border-black/20 hover:border-black/40 hover:scale-110"
+                            title="Reset Image"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </>
                   )}
                   {selectedFrame && (
