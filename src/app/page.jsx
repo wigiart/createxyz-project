@@ -6,6 +6,8 @@ import Draggable from 'react-draggable';
 import html2canvas from 'html2canvas';
 import { useUpload } from "../utilities/runtime-helpers";
 import Layout from '../components/Layout';
+import BrowserRedirect from '../components/BrowserRedirect';
+import { isDownloadCapableBrowser } from '../utils/browserDetection';
 
 function MainComponent() {
   const { useState, useEffect, useRef } = React;
@@ -23,6 +25,7 @@ function MainComponent() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [error, setError] = useState(null);
   const [upload, { loading }] = useUpload();
+  const [showBrowserRedirect, setShowBrowserRedirect] = useState(false);
   const frameRef = useRef(null);
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -164,6 +167,11 @@ function MainComponent() {
   };
 
   const handleSaveCreation = async () => {
+    if (!isDownloadCapableBrowser()) {
+      setShowBrowserRedirect(true);
+      return;
+    }
+
     if (!canvasRef.current || !uploadedImage) return;
     
     setIsSaving(true);
@@ -542,6 +550,11 @@ function MainComponent() {
           </div>
         </div>
       </div>
+      <BrowserRedirect
+        isOpen={showBrowserRedirect}
+        onClose={() => setShowBrowserRedirect(false)}
+        onConfirm={() => setShowBrowserRedirect(false)}
+      />
     </Layout>
   );
 }

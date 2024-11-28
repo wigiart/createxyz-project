@@ -42,7 +42,7 @@ export default function Layout({ children }) {
       {/* Footer */}
       <footer className="bg-white/80 backdrop-blur-sm mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold text-purple-600 mb-4 font-dancing">Wigiart</h3>
               <p className="text-gray-600">
@@ -65,10 +65,39 @@ export default function Layout({ children }) {
               </ul>
             </div>
             <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Legal</h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/terms" className="text-gray-600 hover:text-purple-600 transition-colors">
+                    Terms of Use
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-gray-600 hover:text-purple-600 transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cookies" className="text-gray-600 hover:text-purple-600 transition-colors">
+                    Cookie Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
               <h4 className="font-semibold text-gray-900 mb-4">Contact</h4>
-              <p className="text-gray-600">
-                Have questions? Get in touch with us at support@wigiart.com
-              </p>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/contact" className="text-gray-600 hover:text-purple-600 transition-colors">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:support@wigiart.com" className="text-gray-600 hover:text-purple-600 transition-colors">
+                    support@wigiart.com
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
           <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-600">

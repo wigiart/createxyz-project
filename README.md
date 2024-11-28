@@ -1,28 +1,57 @@
-This project was generated from [create.xyz](https://create.xyz/).
+# Wigiart - Custom Frame Creation Platform
 
-It is a [Next.js](https://nextjs.org/) project built on React and TailwindCSS.
+Transform your photos with beautiful custom frames using Wigiart. Our platform provides an intuitive interface for creating, customizing, and sharing your precious memories.
+
+## Features
+
+- Custom frame selection and customization
+- Video template integration
+- Image upload and manipulation
+- Real-time preview
+- Mobile-friendly design
+- Easy download and sharing
+
+## Technology Stack
+
+- Next.js 14.0.4
+- React 18
+- Tailwind CSS
+- HTML5 Canvas
+- Modern JavaScript
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Development
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Built with modern web technologies
+- Responsive design principles
+- Component-based architecture
+- Client-side rendering
+- Optimized for performance
 
-You can start editing the code in `src`. The page auto-updates as you edit the file.
+## Browser Support
 
-To learn more, take a look at the following resources:
+- Chrome (recommended)
+- Firefox
+- Safari
+- Edge
+- Mobile browsers (with external browser redirection for downloads)
 
-- [React Documentation](https://react.dev/) - learn about React
-- [TailwindCSS Documentation](https://tailwindcss.com/) - learn about TailwindCSS
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contact
+
+For support or inquiries, please contact us at support@wigiart.com
+
+## License
+
+Copyright 2024 Wigiart. All rights reserved.
