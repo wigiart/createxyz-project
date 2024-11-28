@@ -1,10 +1,27 @@
 ---
 deployment:
   tasks:
+    # Clear the deployment directory first
     - export DEPLOYPATH=/home/username/public_html/
-    - /bin/cp -R public/* $DEPLOYPATH
-    - /bin/cp -R .next/* $DEPLOYPATH/_next
-    - /bin/cp -R out/* $DEPLOYPATH
-    - /bin/cp .htaccess $DEPLOYPATH
-    - /bin/cp package.json $DEPLOYPATH
-    - /bin/cp next.config.js $DEPLOYPATH
+    - /bin/rm -rf $DEPLOYPATH/*
+    
+    # Install dependencies and build
+    - source ~/.nvm/nvm.sh
+    - nvm use 18
+    - /bin/npm install
+    - /bin/npm run build
+    
+    # Copy built files and assets
+    - /bin/cp -R .next/static/* $DEPLOYPATH/_next/static/
+    - /bin/cp -R public/* $DEPLOYPATH/
+    - /bin/cp -R out/* $DEPLOYPATH/
+    
+    # Copy configuration files
+    - /bin/cp .htaccess $DEPLOYPATH/
+    - /bin/cp package.json $DEPLOYPATH/
+    - /bin/cp next.config.js $DEPLOYPATH/
+    
+    # Set permissions
+    - /bin/chmod 755 $DEPLOYPATH
+    - /bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
