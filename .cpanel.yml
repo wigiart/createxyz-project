@@ -2,7 +2,7 @@
 deployment:
   tasks:
     # Clear the deployment directory first
-    - export DEPLOYPATH=/home/username/public_html/
+    - export DEPLOYPATH=/home/birthday/public_html/
     - /bin/rm -rf $DEPLOYPATH/*
     
     # Install dependencies and build
