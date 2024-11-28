@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Suspense } from 'react';
 import Link from "next/link";
 import { useSearchParams, useRouter } from 'next/navigation';
 import Draggable from 'react-draggable';
@@ -559,4 +560,10 @@ function MainComponent() {
   );
 }
 
-export default MainComponent;
+export default function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MainComponent />
+    </Suspense>
+  );
+}

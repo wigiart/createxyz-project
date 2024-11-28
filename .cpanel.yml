@@ -2,7 +2,17 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/birthday/public_html
-    - /bin/cp -R * $DEPLOYPATH/
-    - /bin/cp .htaccess $DEPLOYPATH/
+    # First, clear the deployment directory
+    - /bin/rm -rf $DEPLOYPATH/*
+    # Copy the built files
+    - /bin/cp -R .next/* $DEPLOYPATH/.next/
+    - /bin/cp -R public/* $DEPLOYPATH/public/
+    - /bin/cp -R node_modules $DEPLOYPATH/
+    # Copy configuration files
     - /bin/cp package.json $DEPLOYPATH/
+    - /bin/cp package-lock.json $DEPLOYPATH/
     - /bin/cp next.config.js $DEPLOYPATH/
+    # Set proper permissions
+    - /bin/chmod 755 $DEPLOYPATH
+    - /bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
