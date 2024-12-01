@@ -43,12 +43,13 @@ function MainComponent() {
 
   useEffect(() => {
     const frameId = searchParams.get('frame');
-    if (frameId) {
-      const frame = frames.find(f => f.id === parseInt(frameId));
-      if (frame) {
-        setSelectedFrame(frame.src);
-        setActiveTab('frames');
-      }
+    const frameSrc = searchParams.get('src');
+    if (frameSrc) {
+      const src = decodeURIComponent(frameSrc);
+      // Add cache-busting if not already present
+      const newSrc = src.includes('?') ? src : `${src}?t=${Date.now()}`;
+      setSelectedFrame(newSrc);
+      setActiveTab('frames');
     }
   }, [searchParams]);
 
@@ -87,31 +88,33 @@ function MainComponent() {
     if (uploadedImage) {
       const img = new Image();
       img.onload = () => {
-        const aspectRatio = img.naturalWidth / img.naturalHeight;
+        // Store original image dimensions
+        const originalSize = {
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        };
+        const aspectRatio = originalSize.width / originalSize.height;
+
+        // Calculate initial size to fit within frame while maintaining aspect ratio
         let newWidth, newHeight;
-        
-        if (frameSize.width && frameSize.height) {
-          if (aspectRatio > frameSize.width / frameSize.height) {
-            newWidth = frameSize.width;
-            newHeight = frameSize.width / aspectRatio;
-          } else {
-            newHeight = frameSize.height;
-            newWidth = frameSize.height * aspectRatio;
-          }
+        if (aspectRatio > frameSize.width / frameSize.height) {
+          newWidth = frameSize.width;
+          newHeight = frameSize.width / aspectRatio;
         } else {
-          newWidth = img.naturalWidth;
-          newHeight = img.naturalHeight;
+          newHeight = frameSize.height;
+          newWidth = frameSize.height * aspectRatio;
         }
 
-        setImageSize({
-          width: newWidth,
-          height: newHeight
-        });
-        
-        setImagePosition({
+        // Set initial position to center
+        const newPosition = {
           x: (frameSize.width - newWidth) / 2,
           y: (frameSize.height - newHeight) / 2
-        });
+        };
+
+        // Update state
+        setImagePosition(newPosition);
+        setImageSize({ width: newWidth, height: newHeight });
+        setImageScale(1);
       };
       img.src = uploadedImage;
     }
@@ -123,13 +126,44 @@ function MainComponent() {
       const reader = new FileReader();
       
       reader.onload = (event) => {
-        setUploadedImage(event.target.result);
-        setImageScale(1);
-        try {
-          localStorage.setItem('uploadedImage', event.target.result);
-        } catch (e) {
-          console.error('Error saving image to localStorage:', e);
-        }
+        const img = new Image();
+        img.onload = () => {
+          // Store original image dimensions
+          const originalSize = {
+            width: img.naturalWidth,
+            height: img.naturalHeight
+          };
+          const aspectRatio = originalSize.width / originalSize.height;
+
+          // Calculate initial size to fit within frame while maintaining aspect ratio
+          let newWidth, newHeight;
+          if (aspectRatio > frameSize.width / frameSize.height) {
+            newWidth = frameSize.width;
+            newHeight = frameSize.width / aspectRatio;
+          } else {
+            newHeight = frameSize.height;
+            newWidth = frameSize.height * aspectRatio;
+          }
+
+          // Set initial position to center
+          const newPosition = {
+            x: (frameSize.width - newWidth) / 2,
+            y: (frameSize.height - newHeight) / 2
+          };
+
+          // Update state
+          setImagePosition(newPosition);
+          setImageSize({ width: newWidth, height: newHeight });
+          setUploadedImage(event.target.result);
+          setImageScale(1);
+
+          try {
+            localStorage.setItem('uploadedImage', event.target.result);
+          } catch (e) {
+            console.error('Error saving image to localStorage:', e);
+          }
+        };
+        img.src = event.target.result;
       };
       
       reader.readAsDataURL(file);
@@ -181,13 +215,52 @@ function MainComponent() {
     try {
       // Wait for any transitions to complete
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const canvas = await html2canvas(canvasRef.current, {
-        scale: 2, // Higher quality
-        useCORS: true, // Enable cross-origin image loading
+
+      // Create a temporary container for the frame and image
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = `${frameSize.width}px`;
+      tempContainer.style.height = `${frameSize.height}px`;
+
+      // Create and style the frame image
+      const frameImg = document.createElement('img');
+      frameImg.src = selectedFrame;
+      frameImg.style.position = 'absolute';
+      frameImg.style.width = '100%';
+      frameImg.style.height = '100%';
+      frameImg.style.objectFit = 'contain';
+
+      // Create and style the user image
+      const userImg = document.createElement('img');
+      userImg.src = uploadedImage;
+      userImg.style.position = 'absolute';
+      userImg.style.width = `${imageSize.width}px`;
+      userImg.style.height = `${imageSize.height}px`;
+      userImg.style.left = `${imagePosition.x}px`;
+      userImg.style.top = `${imagePosition.y}px`;
+      userImg.style.transform = `scale(${imageScale})`;
+      userImg.style.transformOrigin = 'top left';
+
+      // Add images to container
+      tempContainer.appendChild(userImg);
+      tempContainer.appendChild(frameImg);
+      document.body.appendChild(tempContainer);
+
+      // Capture the temporary container
+      const canvas = await html2canvas(tempContainer, {
+        scale: 2,
+        useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        width: frameSize.width,
+        height: frameSize.height,
+        imageTimeout: 0,
+        logging: false
       });
+
+      // Clean up
+      document.body.removeChild(tempContainer);
 
       // Create download link
       const link = document.createElement('a');
