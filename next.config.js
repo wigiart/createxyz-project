@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove output: 'export' to allow middleware
+  output: 'export',  // Enable static export
   images: {
-    unoptimized: true,
+    unoptimized: true, // Required for static export
     domains: ['wigiart.com'],
   },
-  trailingSlash: true,
+  trailingSlash: true, // Recommended for static hosting
   reactStrictMode: true,
   swcMinify: true,
   experimental: {

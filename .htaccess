@@ -1,0 +1,21 @@
+RewriteEngine On
+RewriteBase /
+
+# Handle Next.js routes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /$1.html [L]
+
+# Redirect 404 to custom 404 page
+ErrorDocument 404 /404.html
+
+# Enable CORS
+Header set Access-Control-Allow-Origin "*"
+
+# Cache static assets
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|webp)$">
+    Header set Cache-Control "max-age=31536000, public"
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
