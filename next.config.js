@@ -8,17 +8,23 @@ const nextConfig = {
   trailingSlash: true,
   reactStrictMode: true,
   swcMinify: true,
-  experimental: {
-    esmExternals: true,
-  },
-  // Ensure all assets are included in the build
-  assetPrefix: '',
+  // Ensure consistent asset handling
+  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   basePath: '',
-  distDir: 'out',
+  // Handle webpack externals
   webpack: (config) => {
     config.externals = [...config.externals, { canvas: "canvas" }];
+    // Ensure consistent module resolution
+    config.resolve = {
+      ...config.resolve,
+      fallback: {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      },
+    };
     return config;
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

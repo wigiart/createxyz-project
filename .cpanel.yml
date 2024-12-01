@@ -4,11 +4,20 @@ deployment:
     - export DEPLOYPATH=/home/birthday/public_html
     # First, clear the deployment directory
     - /bin/rm -rf $DEPLOYPATH/*
-    # Copy all built files from out directory
+    # Create necessary directories
+    - /bin/mkdir -p $DEPLOYPATH/_next
+    - /bin/mkdir -p $DEPLOYPATH/public
+    # Copy static files from out directory
     - /bin/cp -R out/. $DEPLOYPATH/
+    # Copy _next directory contents
+    - /bin/cp -R out/_next/. $DEPLOYPATH/_next/
     # Copy public assets
-    - /bin/cp -R public/. $DEPLOYPATH/
-    # Set proper permissions
+    - /bin/cp -R public/. $DEPLOYPATH/public/
+    # Copy root files
+    - /bin/cp .htaccess $DEPLOYPATH/
+    # Set proper permissions (recursive)
     - /bin/chmod 755 $DEPLOYPATH
     - /bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
     - /bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
+    # Ensure .htaccess has correct permissions
+    - /bin/chmod 644 $DEPLOYPATH/.htaccess
